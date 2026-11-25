@@ -1,0 +1,9 @@
+{
+ "mac_address": "MT230E - 99:89:5E:54:06:45", 
+ "connection_type": "bluetooth_direct" ,
+ "usb_device": "99456:5433 - Winbond Electronics Corp. Virtual Com Port", 
+ "system_printer_name": "POS11",
+ "usb_port": "/dev/usb/la1",
+ "server_port": 20726,
+  "allowed_origins": ["http://localhost:20726", "http://127.0.0.1:20726"]
+}

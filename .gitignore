@@ -1,0 +1,15 @@
+/__pycache__
+
+/.idea
+
+/dist
+
+/build
+
+/Output
+
+config.json
+
+/.venv
+
+PrintStack.spec
