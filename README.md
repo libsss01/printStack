@@ -1,26 +1,28 @@
 # PrintStack
 
-Serveur d'impression local pour imprimantes thermiques **ESC/POS** (tickets de caisse), avec une interface graphique de configuration.
+Local print server for **ESC/POS** thermal printers (receipt printers), with a graphical configuration interface.
 
-PrintStack tourne sur le poste de l'utilisateur et expose une petite API HTTP sur `localhost`. Une application web ou un logiciel de caisse peut ainsi imprimer sans pilote particulier :
+PrintStack runs on the user's machine and exposes a small HTTP API on `localhost`. A web application or point-of-sale software can then print without any special driver:
 
-- du **texte** ;
-- des **images** (logo, reçu généré, etc.) ;
-- des **commandes ESC/POS brutes**, pour garder un contrôle total sur la mise en page, l'ouverture du tiroir-caisse, la découpe…
+- **text**;
+- **images** (logo, generated receipt, etc.);
+- **raw ESC/POS commands**, for full control over layout, cash drawer opening, paper cutting…
 
-## Fonctionnalités
+> The user interface and the API error messages are currently in French.
 
-- Trois modes de connexion à l'imprimante : **Bluetooth direct**, **USB direct**, ou **imprimante système** (Windows).
-- Interface graphique pour choisir l'imprimante, voir les journaux et redémarrer le serveur.
-- Application réduite dans la zone de notification plutôt que fermée.
-- Page de démonstration intégrée (`/demo`).
-- Protections : liste d'origines autorisées, limite de 10 impressions par minute, taille de requête limitée à 10 Mo.
+## Features
 
-## Prérequis
+- Three printer connection modes: **direct Bluetooth**, **direct USB**, or **system printer** (Windows).
+- Graphical interface to select the printer, view logs and restart the server.
+- The application minimizes to the system tray instead of closing.
+- Built-in demo page (`/demo`).
+- Safeguards: allowed origins list, limit of 10 prints per minute, request size limited to 10 MB.
 
-- **Python 3.14** (version testée)
-- Windows ou Linux
-- Sous Linux, Tkinter doit être installé à part :
+## Requirements
+
+- **Python 3.14** (tested version)
+- Windows or Linux
+- On Linux, Tkinter must be installed separately:
   ```bash
   sudo apt install python3-tk
   ```
@@ -28,7 +30,7 @@ PrintStack tourne sur le poste de l'utilisateur et expose une petite API HTTP su
 ## Installation
 
 ```bash
-git clone <url-du-depot>
+git clone https://github.com/libsss01/printStack.git
 cd printStack
 
 python -m venv .venv
@@ -40,46 +42,46 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## Lancement
+## Running
 
 ```bash
 python main_gui.py
 ```
 
-L'interface démarre et lance le serveur sur `http://localhost:20726`. Ouvrez `http://localhost:20726/demo` pour faire un premier test d'impression.
+The interface starts and launches the server on `http://localhost:20726`. Open `http://localhost:20726/demo` for a first test print.
 
-Pour lancer le serveur seul, sans interface :
+To run the server alone, without the interface:
 
 ```bash
 python print_server.py
 ```
 
-> Fermer la fenêtre ne quitte pas l'application : elle reste dans la zone de notification. Pour l'arrêter vraiment, faites un clic droit sur l'icône puis **Quitter**.
+> Closing the window does not quit the application: it stays in the system tray. To really stop it, right-click the icon and choose **Quitter** (Quit).
 
 ## Configuration
 
-La configuration est stockée dans un fichier `config.json` situé ici :
+The configuration is stored in a `config.json` file located here:
 
-| Système | Emplacement |
+| System | Location |
 |---|---|
 | Windows | `%APPDATA%\PrintStack\config.json` |
 | Linux / macOS | `~/.printstack/config.json` |
 
-**Seul ce fichier est lu.** Au tout premier lancement, si un `config.json` se trouve à côté de l'exécutable ou dans le dossier courant, il est copié vers cet emplacement. Ensuite, il n'est plus jamais relu.
+**Only this file is read.** On the very first launch, if a `config.json` exists next to the executable or in the current directory, it is copied to this location. After that, it is never read again.
 
-Les réglages d'imprimante se font depuis l'interface graphique. Le port et les origines autorisées se modifient **à la main** dans le fichier (servez-vous de `config.example.json` comme modèle), puis il faut redémarrer l'application.
+Printer settings are made from the graphical interface. The port and the allowed origins are edited **by hand** in the file (use `config.example.json` as a template), then the application must be restarted.
 
-| Clé | Rôle | Valeur par défaut |
+| Key | Purpose | Default value |
 |---|---|---|
-| `server_port` | Port d'écoute du serveur | `20726` |
-| `allowed_origins` | Origines web autorisées à appeler l'API (voir [Sécurité](#sécurité)) | `["http://localhost:20726"]` |
-| `connection_type` | `bluetooth_direct`, `usb_direct` ou `system_printer` | `bluetooth_direct` |
-| `mac_address` | Adresse MAC de l'imprimante Bluetooth | — |
-| `usb_port` | Chemin du périphérique USB (`/dev/usb/lp0`, `COM3`…) | — |
-| `system_printer_name` | Nom de l'imprimante système (Windows) | — |
-| `bluetooth_speed` | Vitesse d'envoi Bluetooth | `5` |
+| `server_port` | Port the server listens on | `20726` |
+| `allowed_origins` | Web origins allowed to call the API (see [Security](#security)) | `["http://localhost:20726"]` |
+| `connection_type` | `bluetooth_direct`, `usb_direct` or `system_printer` | `bluetooth_direct` |
+| `mac_address` | MAC address of the Bluetooth printer | — |
+| `usb_port` | USB device path (`/dev/usb/lp0`, `COM3`…) | — |
+| `system_printer_name` | System printer name (Windows) | — |
+| `bluetooth_speed` | Bluetooth sending speed | `5` |
 
-Exemple :
+Example:
 
 ```json
 {
@@ -90,109 +92,109 @@ Exemple :
 }
 ```
 
-Une origine invalide (qui n'est pas une chaîne commençant par `http://` ou `https://`) est remplacée par la valeur par défaut, et un avertissement est écrit dans le journal.
+An invalid origin (anything that is not a string starting with `http://` or `https://`) is replaced by the default value, and a warning is written to the log.
 
-## Sécurité
+## Security
 
-Le serveur écoute uniquement sur `127.0.0.1` : il n'est pas joignable depuis le réseau.
+The server only listens on `127.0.0.1`: it cannot be reached from the network.
 
-**Contrôle des origines.** Quand une requête porte un en-tête `Origin` absent de la liste  `allowed_origins`, elle est refusée avec un **403**. Un site malveillant ouvert dans le navigateur de l'utilisateur ne peut donc pas déclencher d'impression.
+**Origin check.** When a request carries an `Origin` header that is not in the `allowed_origins` list, it is rejected with a **403**. A malicious website opened in the user's browser therefore cannot trigger a print.
 
-Les requêtes **sans** en-tête `Origin` (curl, logiciel de caisse, script local) sont acceptées. Ce contrôle protège contre les sites web, pas contre les programmes qui tournent déjà sur la machine.
+Requests **without** an `Origin` header (curl, POS software, local scripts) are accepted. This check protects against websites, not against programs already running on the machine.
 
-Si votre application web est servie depuis une autre adresse (par exemple `http://localhost:3000`), ajoutez-la à `allowed_origins`.
+If your web application is served from another address (for example `http://localhost:3000`), add it to `allowed_origins`.
 
 ## API
 
 ### `POST /print/esc-pos`
 
-Envoie des commandes ESC/POS brutes directement à l'imprimante, par l'intermédiaire du serveur. Le serveur ne modifie rien : c'est au client d'inclure l'initialisation, la mise en forme, la coupe du papier, l'ouverture du tiroir-caisse, etc.
+Sends raw ESC/POS commands directly to the printer, through the server. The server does not modify anything: the client is responsible for initialization, formatting, paper cutting, cash drawer opening, etc.
 
-**Corps de la requête** (JSON)
+**Request body** (JSON)
 
-| Champ | Type | Obligatoire | Description |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `data` | string | Oui | Octets ESC/POS encodés en **base64**. Le JSON ne peut pas transporter d'octets bruts, d'où l'encodage. |
+| `data` | string | Yes | ESC/POS bytes encoded in **base64**. JSON cannot carry raw bytes, hence the encoding. |
 
-**Exemple**
+**Example**
 
 ```bash
 curl -X POST http://localhost:20726/print/esc-pos \
   -H "Content-Type: application/json" \
-  -d '{"data": "G0BCb25qb3VyIFByaW50U3RhY2sKCgoKHVYA"}'
+  -d '{"data": "G0BIZWxsbyBQcmludFN0YWNrCgoKCh1WAA=="}'
 ```
 
-Cette chaîne base64 correspond aux octets suivants :
+This base64 string decodes to the following bytes:
 
-| Octets | Commande |
+| Bytes | Command |
 |---|---|
-| `1B 40` | `ESC @` : initialise l'imprimante |
-| `Bonjour PrintStack` | le texte à imprimer |
-| `0A 0A 0A 0A` | quatre sauts de ligne pour faire avancer le papier |
-| `1D 56 00` | `GS V 0` : coupe le papier |
+| `1B 40` | `ESC @`: initializes the printer |
+| `Hello PrintStack` | the text to print |
+| `0A 0A 0A 0A` | four line feeds to advance the paper |
+| `1D 56 00` | `GS V 0`: cuts the paper |
 
-Pour produire votre propre chaîne, en Python :
+To build your own string, in Python:
 
 ```python
 import base64
-base64.b64encode(b"\x1b@Bonjour PrintStack\n\n\n\n\x1dV\x00").decode()
+base64.b64encode(b"\x1b@Hello PrintStack\n\n\n\n\x1dV\x00").decode()
 ```
 
-Réponse : `{"success": true}`
+Response: `{"success": true}`
 
-**Erreurs**
+**Errors**
 
 | Code | Cause |
 |---|---|
-| 400 | Corps absent ou qui n'est pas un objet JSON, champ `data` manquant ou vide, `data` qui n'est pas une chaîne, base64 invalide |
-| 403 | Origine non autorisée |
-| 413 | Requête de plus de 10 Mo |
-| 429 | Plus de 10 impressions en une minute |
-| 500 | Erreur d'impression interne (imprimante injoignable, etc.) |
+| 400 | Missing body or body that is not a JSON object, missing or empty `data` field, `data` that is not a string, invalid base64 |
+| 403 | Origin not allowed |
+| 413 | Request larger than 10 MB |
+| 429 | More than 10 prints in one minute |
+| 500 | Internal print error (printer unreachable, etc.) |
 
 ### `POST /print/text`
 
-Imprime du texte brut. Le serveur initialise l'imprimante, imprime le texte, fait avancer le papier puis le coupe.
+Prints plain text. The server initializes the printer, prints the text, feeds the paper, then cuts it.
 
-**Corps de la requête** (JSON)
+**Request body** (JSON)
 
-| Champ | Type | Obligatoire | Description |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `content` | string | Oui | Texte à imprimer. Les retours à la ligne (`\n`) sont respectés. |
+| `content` | string | Yes | Text to print. Line breaks (`\n`) are preserved. |
 
-**Exemple**
+**Example**
 
 ```bash
 curl -X POST http://localhost:20726/print/text \
   -H "Content-Type: application/json" \
-  -d '{"content": "Merci de votre visite !\nTotal : 1500 FCFA"}'
+  -d '{"content": "Thank you for your visit!\nTotal: 1500"}'
 ```
 
-Réponse : `{"success": true}`
+Response: `{"success": true}`
 
-> Le texte est envoyé encodé en UTF-8. Selon la page de code de votre imprimante, les caractères accentués peuvent s'afficher incorrectement. Pour un contrôle total, utilisez `/print/esc-pos`.
+> The text is sent encoded as UTF-8. Depending on your printer's code page, accented characters may print incorrectly. For full control, use `/print/esc-pos`.
 
-**Erreurs**
+**Errors**
 
 | Code | Cause |
 |---|---|
-| 400 | Corps absent ou qui n'est pas un objet JSON, champ `content` manquant ou vide, `content` qui n'est pas une chaîne |
-| 403 | Origine non autorisée |
-| 413 | Requête de plus de 10 Mo |
-| 429 | Plus de 10 impressions en une minute |
-| 500 | Erreur d'impression interne (imprimante injoignable, etc.) |
+| 400 | Missing body or body that is not a JSON object, missing or empty `content` field, `content` that is not a string |
+| 403 | Origin not allowed |
+| 413 | Request larger than 10 MB |
+| 429 | More than 10 prints in one minute |
+| 500 | Internal print error (printer unreachable, etc.) |
 
 ### `POST /print/image`
 
-Imprime une image PNG ou JPEG. Une image de plus de 384 pixels de large est redimensionnée à 384 pixels (largeur d'impression d'un ticket de 58 mm), puis le papier est coupé.
+Prints a PNG or JPEG image. An image wider than 384 pixels is resized to 384 pixels (print width of a 58 mm receipt), then the paper is cut.
 
-**Corps de la requête** (JSON)
+**Request body** (JSON)
 
-| Champ | Type | Obligatoire | Description |
+| Field | Type | Required | Description |
 |---|---|---|---|
-| `content` | string | Oui | Image encodée en **base64**. Une data URL (`data:image/png;base64,...`) est aussi acceptée, ce qui permet d'envoyer directement le résultat d'un `FileReader.readAsDataURL()` côté navigateur. |
+| `content` | string | Yes | Image encoded in **base64**. A data URL (`data:image/png;base64,...`) is also accepted, so the result of a browser-side `FileReader.readAsDataURL()` can be sent as is. |
 
-**Exemple**
+**Example**
 
 ```bash
 curl -X POST http://localhost:20726/print/image \
@@ -200,51 +202,51 @@ curl -X POST http://localhost:20726/print/image \
   -d "{\"content\": \"$(base64 -w0 logo.png)\"}"
 ```
 
-`base64 -w0 logo.png` encode le fichier `logo.png` en base64 sur une seule ligne.
+`base64 -w0 logo.png` encodes the `logo.png` file in base64 on a single line.
 
-Réponse : `{"success": true}`
+Response: `{"success": true}`
 
-**Erreurs**
+**Errors**
 
 | Code | Cause |
 |---|---|
-| 400 | Corps absent ou qui n'est pas un objet JSON, champ `content` manquant, vide ou qui n'est pas une chaîne, base64 invalide, données qui ne sont pas une image |
-| 403 | Origine non autorisée |
-| 413 | Requête de plus de 10 Mo |
-| 429 | Plus de 10 impressions en une minute |
-| 500 | Erreur d'impression interne (imprimante injoignable, etc.) |
+| 400 | Missing body or body that is not a JSON object, missing or empty `content` field or one that is not a string, invalid base64, data that is not an image |
+| 403 | Origin not allowed |
+| 413 | Request larger than 10 MB |
+| 429 | More than 10 prints in one minute |
+| 500 | Internal print error (printer unreachable, etc.) |
 
-## Construire l'exécutable
+## Building the executable
 
-**Windows :**
+**Windows:**
 
 ```bat
 build_exe.bat
 ```
 
-Le résultat se trouve dans `dist\PrintStack\`. Pour produire un installateur, ouvrez `setup.iss` avec [Inno Setup](https://jrsoftware.org/isinfo.php).
+The result is in `dist\PrintStack\`. To produce an installer, open `setup.iss` with [Inno Setup](https://jrsoftware.org/isinfo.php).
 
-**Linux :**
+**Linux:**
 
 ```bash
 ./build_linux.sh
 ```
 
-Pour changer l'icône de l'application, remplacez `assets/images/printstack_logo.png` puis lancez `python create_ico.py` avant de reconstruire.
+To change the application icon, replace `assets/images/printstack_logo.png` and run `python create_ico.py` before rebuilding.
 
-## Structure du projet
+## Project structure
 
-| Fichier | Rôle |
+| File | Purpose |
 |---|---|
-| `print_server.py` | Serveur Flask : API, connexion aux imprimantes, sécurité, journaux |
-| `main_gui.py` | Interface graphique (customtkinter) et icône de la zone de notification |
-| `pos_demo.html` | Page de démonstration servie sur `/demo` |
-| `config.example.json` | Modèle de configuration |
-| `create_ico.py` | Génère `icon.ico` à partir du logo PNG |
-| `build_exe.bat`, `build_linux.sh` | Scripts de construction PyInstaller |
-| `PrintStack.spec`, `setup.iss` | Configurations PyInstaller et Inno Setup |
-| `assets/images/` | Logos et icône |
+| `print_server.py` | Flask server: API, printer connections, security, logs |
+| `main_gui.py` | Graphical interface (customtkinter) and system tray icon |
+| `pos_demo.html` | Demo page served on `/demo` |
+| `config.example.json` | Configuration template |
+| `create_ico.py` | Generates `icon.ico` from the PNG logo |
+| `build_exe.bat`, `build_linux.sh` | PyInstaller build scripts (the build configuration lives here) |
+| `setup.iss` | Inno Setup installer configuration |
+| `assets/images/` | Logos and icon |
 
-## Licence
+## License
 
-Distribué sous licence MIT. Voir [LICENSE](LICENSE).
+Distributed under the MIT License. See [LICENSE](LICENSE).
